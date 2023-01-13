@@ -1,4 +1,4 @@
-# Matten - A Tennis Matching Application
+# RallyRank - A Tennis Matching Application
 ---
 
 ## Summary
