@@ -1,14 +1,32 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
-const userSchema = new mongoose.Schema(
-  {
-    first_name: { type: String },
-    last_name: { type: String },
-    email: { type: String, unique: true },
-    password: { type: String },
-    token: { type: String }
-  }
-);
+const { TOKEN_KEY } = process.env;
+
+const userSchema = new mongoose.Schema({
+  firstName: { type: String, required: true, trim: true },
+  lastName: { type: String, required: true, trim: true },
+  email: {
+    type: String,
+    unique: true,
+    required: true,
+    trim: true,
+    lowecase: true,
+  },
+  password: { type: String },
+  tokens: [{ token: { type: String, required: true } }],
+});
+
+userSchema.methods.generateAuthToken = async function () {
+  const user = this;
+  const token = jwt.sign({ _id: user.id.toString() }, TOKEN_KEY);
+
+  user.tokens = [...user.tokens, { token }];
+
+  await user.save();
+
+  return token;
+};
 
 const User = mongoose.model("User", userSchema);
 

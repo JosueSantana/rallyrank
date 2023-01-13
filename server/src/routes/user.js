@@ -1,7 +1,7 @@
 import express from "express";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import auth from '../middleware/auth.js'
 
 // TODO: Read about express.Router
 const router = new express.Router();
@@ -36,20 +36,12 @@ router.post("/users", async (req, res) => {
       password: encryptedPassword,
     });
 
-    // Create a signed JWT
-    const token = jwt.sign(
-      { user_id: user._id, email },
-      process.env.TOKEN_KEY,
-      {
-        expiresIn: "2h",
-      }
-    );
 
-    // Save token
-    user.token = token;
+    // Create a signed JWT
+    const token = await user.generateAuthToken();
 
     // Return new user
-    res.status(201).json(user);
+    res.status(201).json({user, token});
   } catch (error) {
     console.log(error);
   }
@@ -58,10 +50,48 @@ router.post("/users", async (req, res) => {
 // TODO: Implement route
 router.post("/users/login", async (req, res) => {
   //login logic goes here
+  try {
+    // Get user input
+    const { email, password } = req.body;
+
+    // Validate user input
+    if (!(email && password)) {
+      res.status(400).send("Missing required fields.");
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    
+    const isMatch = await bcrypt.compare(password, user.password);
+  
+    // Compare provided password to stored password
+    if (user && isMatch) {
+      // Create signed JWT token
+      const token = await user.generateAuthToken();
+
+      res.status(200).json({user, token});
+    } else {
+      res.status(400).send("Credentials do not match.");
+    }
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 // TODO: Implement route
-router.post("/users/logout", async (req, res) => {});
+router.post("/users/logout", auth, async (req, res) => {
+  try {
+    req.user.tokens = req.user.tokens.filter((tokenWrapper) => {
+      return tokenWrapper.token != req.token;
+    });
+
+    await req.user.save();
+
+    res.send();
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 // TODO: Implement route
 router.get("/users/:userId", async (req, res) => {});
