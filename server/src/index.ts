@@ -1,7 +1,7 @@
-import app from './app.js';
+import app from './app';
 
 const port = process.env.PORT;
 
-const server = app.listen(port, () => {
+app.listen(port, () => {
   console.log("Server is up on port " + port);
 });

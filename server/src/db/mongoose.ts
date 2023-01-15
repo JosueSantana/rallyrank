@@ -2,9 +2,8 @@ import mongoose from "mongoose";
 mongoose.set("strictQuery", false); //As per DeprecationWarning
 
 const { MONGO_URI, CONTEXT } = process.env;
-console.log(MONGO_URI);
 
-if (CONTEXT !== "TEST") {
+if (CONTEXT !== "TEST" && MONGO_URI !== undefined ) {
   mongoose
     .connect(MONGO_URI, {})
     .then(() => {

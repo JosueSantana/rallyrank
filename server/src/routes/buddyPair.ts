@@ -1,9 +1,10 @@
-import express from "express";
-import BuddyPair from "../models/BuddyPair.js";
-import User from "../models/User.js";
-import auth from '../middleware/auth.js'
+import * as express from "express";
+import { Router } from "express";
+import BuddyPair from "../models/BuddyPair";
+import User from "../models/User";
+import auth from "../middleware/auth";
 
-const router = new express.Router();
+const router: express.Router = express.Router();
 
 // TODO: Perform more consistent error handling across routes
 // TODO: Make it so buddies can ONLY be added if a buddy request exists
@@ -21,7 +22,7 @@ router.post("/users/:userId/buddies", auth, async (req, res) => {
   if (!buddyId) {
     return res.status(404).send("Could not find buddy.");
   }
-  
+
   //TODO: abstract this logic of having to find both combinations to middleware
   const existingBuddyPair = await BuddyPair.findOne({
     userId,
@@ -47,7 +48,9 @@ router.post("/users/:userId/buddies", auth, async (req, res) => {
 });
 
 router.get("/users/:userId/buddies", auth, async (req, res) => {
-  const buddies = await BuddyPair.find().where("userId").equals(req.params.userId);
+  const buddies = await BuddyPair.find()
+    .where("userId")
+    .equals(req.params.userId);
 
   const resultbuddies = buddies.map(({ buddyId }) => {
     return buddyId;
@@ -60,15 +63,21 @@ router.get("/users/:userId/buddies/:buddyId", auth, async (req, res) => {
   //TODO: abstract this logic of having to find both combinations to middleware
   const { userId, buddyId } = req.params;
   const buddyPair = await BuddyPair.findOne({ userId, buddyId });
-  const revBuddyPair = await BuddyPair.findOne({ userId: buddyId, buddyId: userId });
+  const revBuddyPair = await BuddyPair.findOne({
+    userId: buddyId,
+    buddyId: userId,
+  });
 
-  if (!buddyPair && !revBuddyPair){
+  if (!buddyPair && !revBuddyPair) {
     return res.status(404).send("The users are not buddies.");
   }
   const buddy = await User.findOne({ _id: req.params.buddyId });
-  const buddyProfile = buddy.profileInfo;
 
-  res.status(200).json(buddyProfile);
+  if (buddy !== undefined && buddy !== null) {
+    const buddyProfile = buddy.profileInfo;
+
+    res.status(200).json(buddyProfile);
+  }
 });
 
 router.delete("/users/:userId/buddies/:buddyId", auth, async (req, res) => {

@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 //TODO: change geolocation to coordinates, look into geolocation implementation
 const courtSchema = new mongoose.Schema(
   {
-    courtName: String,
+    courtName: { type: String, required: true, unique: true },
     courtType: String,
     city: String,
     geolocation: String

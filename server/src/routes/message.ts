@@ -1,6 +1,6 @@
-import express from 'express';
+import * as express from 'express';
 
-const router = new express.Router();
+const router = express.Router();
 
 // TODO: Messaging to be implemented at a later time
 // TODO: Implement route

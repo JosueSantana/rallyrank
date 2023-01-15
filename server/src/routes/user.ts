@@ -1,9 +1,12 @@
 import express from "express";
 import bcrypt from "bcryptjs";
-import User from "../models/User.js";
-import auth from "../middleware/auth.js";
+import User from "../models/User";
+import auth from "../middleware/auth";
+import { AuthRequest } from "../middleware/auth";
+import { IUser } from "../models/User";
+import { HydratedDocument } from "mongoose";
 
-const router = new express.Router();
+const router = express.Router();
 
 // Register User
 router.post("/users", async (req, res) => {
@@ -63,30 +66,36 @@ router.post("/users/login", async (req, res) => {
     // Check if user exists
     const user = await User.findOne({ email });
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    if (user !== null) {
+      const isMatch = await bcrypt.compare(password, user.password);
 
-    // Compare provided password to stored password
-    if (user && isMatch) {
-      // Create signed JWT token
-      const token = await user.generateAuthToken();
+      // Compare provided password to stored password
+      if (user && isMatch) {
+        // Create signed JWT token
+        const token = await user.generateAuthToken();
 
-      res.status(200).json({ user, token });
-    } else {
-      res.status(400).send("Credentials do not match.");
+        return res.status(200).json({ user, token });
+      } else {
+        return res.status(400).send("Credentials do not match.");
+      }
     }
+    return res.status(404).send("User does not exist.");
   } catch (error) {
     res.status(500).send();
   }
 });
 
 // Log User Out
-router.post("/users/logout", auth, async (req, res) => {
+router.post("/users/logout", auth, async (req: AuthRequest, res) => {
   try {
-    req.user.tokens = req.user.tokens.filter((tokenWrapper) => {
+    // This cb function only gets invoked after auth, auth always makes sure
+    // user and token exist
+    const user = req.user!;
+    user.tokens = user.tokens.filter((tokenWrapper) => {
       return tokenWrapper.token != req.token;
     });
 
-    await req.user.save();
+    await user.save();
 
     res.send();
   } catch (error) {
@@ -95,40 +104,45 @@ router.post("/users/logout", auth, async (req, res) => {
 });
 
 //TODO: Implement delete User
-router.delete("/users", async(req,res) => {
-
-});
+router.delete("/users", async (req, res) => {});
 
 // Get User
 router.get("/users/:userId", auth, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
 
-    const resultUser = {
-      _id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-    };
+    if (user !== null) {
+      const resultUser = {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      };
 
-    res.send({ user: resultUser });
+      return res.status(200).send({ user: resultUser });
+    }
+    return res.status(404).send("User not found.");
   } catch (error) {
-    res.status(500).send();
+    return res.status(500).send();
   }
 });
 
 // Get User's Profile
 router.get("/users/:userId/profile", auth, async (req, res) => {
   try {
-    const { _id, profileInfo } = await User.findById(req.params.userId);
+    const user = await User.findById(req.params.userId);
+    const { _id, profileInfo } = user as HydratedDocument<IUser>;
 
-    //TODO: Make use of mongoose subdocument syntax
-    const resultUser = {
-      _id,
-      profileInfo,
-    };
+    if (user !== undefined) {
+      //TODO: Make use of mongoose subdocument syntax
+      const resultUser = {
+        _id,
+        profileInfo,
+      };
 
-    res.send({ user: resultUser });
+      return res.status(200).send({ user: resultUser });
+    }
+    return res.status(404).send("User does not exist.");
   } catch (error) {
     console.log(error);
     res.status(500).send();
@@ -141,15 +155,21 @@ router.patch("/users/:userId/profile", auth, async (req, res) => {});
 // Get User's Settings
 router.get("/users/:userId/settings", auth, async (req, res) => {
   try {
-    const { _id, settingsInfo } = await User.findById(req.params.userId);
+    const user = await User.findById(req.params.userId);
+    const { _id, settingsInfo } = user as HydratedDocument<IUser>;
 
-    //TODO: Make use of mongoose subdocument syntax
-    const resultUser = {
-      _id,
-      settingsInfo
-    };
+    if (user !== undefined) {
+      //TODO: Make use of mongoose subdocument syntax
+      const resultUser = {
+        _id,
+        settingsInfo,
+      };
 
-    res.send({ user: resultUser });
+      return res.status(200).send({ user: resultUser });
+    }
+
+    return res.status(404).send("User does not exist.");
+    
   } catch (error) {
     console.log(error);
     res.status(500).send();
