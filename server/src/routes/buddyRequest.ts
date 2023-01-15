@@ -1,9 +1,9 @@
 import express from "express";
-import BuddyRequest from "../models/BuddyRequest.js";
-import User from "../models/User.js";
-import auth from '../middleware/auth.js'
+import BuddyRequest from "../models/BuddyRequest";
+import User from "../models/User";
+import auth from '../middleware/auth'
 
-const router = new express.Router();
+const router = express.Router();
 
 //TODO: Possibly abstract logic since buddy.js and buddyRequest.js are so similar
 // TODO: Make it so a buddy request cannot exist if two users are already part of a Buddy Pair
@@ -65,7 +65,10 @@ router.get("/users/:userId/requests/:requesterId", auth, async (req, res) => {
   }
   const requester = await User.findOne({ _id: req.params.requesterId });
 
-  res.status(200).json({ requesterId: requester._id });
+  if ( requester !== null) {
+    res.status(200).json({ requesterId: requester._id });
+  }
+  res.status(404).send("Requester does not exist.")
 });
 
 router.delete("/users/:userId/requests/:requesterId", auth, async (req, res) => {

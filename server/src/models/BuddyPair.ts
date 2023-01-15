@@ -1,10 +1,18 @@
-import { Schema, model } from "mongoose";
+import { Schema, Types, model } from "mongoose";
 
-const buddySchema = new Schema({
+// ---- INTERFACES -----
+export interface IBuddyPair {
+  userId: Types.ObjectId,
+  buddyId: Types.ObjectId
+}
+
+// ----- SCHEMAS -----
+const buddyPairSchema = new Schema<IBuddyPair>({
   userId: { type: Schema.Types.ObjectId, required: true, ref: "User" },
   buddyId: { type: Schema.Types.ObjectId, required: true, ref: "User" },
 });
 
-const BuddyPair = model("BuddyPair", buddySchema);
+// ----- MODEL -----
+const BuddyPair = model("BuddyPair", buddyPairSchema);
 
 export default BuddyPair;
