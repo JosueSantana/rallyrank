@@ -1,16 +1,38 @@
-import mongoose from 'mongoose';
+import { Schema, Types, model } from "mongoose";
 
-//TODO: Add validation for courtType
-//TODO: change geolocation to coordinates, look into geolocation implementation
-const courtSchema = new mongoose.Schema(
-  {
-    courtName: { type: String, required: true, unique: true },
-    courtType: String,
-    city: String,
-    geolocation: String
-  }
-);
+export type CourtLocation = {
+  type: "Point" | "Polygon";
+  coordinates: [number];
+};
 
-const Court = mongoose.model("User", courtSchema);
+// ----- INTERFACES -----
+export interface ICourt {
+  courtName: string;
+  courtType: string;
+  city: string;
+  location: CourtLocation;
+}
+
+//TODO: Add validation for courtType and location
+// ----- SCHEMAS -----
+const courtSchema = new Schema<ICourt>({
+  courtName: { type: String, required: true, unique: true },
+  courtType: String,
+  city: String,
+  location: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
+  },
+});
+
+// ----- MODEL -----
+const Court = model("User", courtSchema);
 
 export default Court;

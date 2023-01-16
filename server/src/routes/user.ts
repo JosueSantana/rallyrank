@@ -1,10 +1,10 @@
 import express from "express";
 import bcrypt from "bcryptjs";
+import { HydratedDocument } from "mongoose";
 import User from "../models/User";
 import auth from "../middleware/auth";
 import { AuthRequest } from "../middleware/auth";
 import { IUser } from "../models/User";
-import { HydratedDocument } from "mongoose";
 
 const router = express.Router();
 
@@ -12,8 +12,9 @@ const router = express.Router();
 router.post("/users", async (req, res) => {
   try {
     // Get user input
-    const { firstName, lastName, email, password, profileInfo, settingsInfo } =
-      req.body;
+    const { email, password, profileInfo, settingsInfo } = req.body;
+
+    const { firstName, lastName } = profileInfo;
 
     // Validate user input
     if (!(email && password && firstName && lastName)) {
@@ -32,12 +33,10 @@ router.post("/users", async (req, res) => {
 
     // Create a user in our database
     const user = await User.create({
-      firstName,
-      lastName,
       email: email.toLowerCase(),
       password: encryptedPassword,
-      profileInfo,
-      settingsInfo,
+      profileInfo: { ...profileInfo },
+      settingsInfo: { ...settingsInfo },
     });
 
     // Create a signed JWT
@@ -52,7 +51,7 @@ router.post("/users", async (req, res) => {
 });
 
 // Log User In
-router.post("/users/login", async (req, res) => {
+router.post("/users/login", async (req: AuthRequest, res) => {
   //login logic goes here
   try {
     // Get user input
@@ -103,8 +102,30 @@ router.post("/users/logout", auth, async (req: AuthRequest, res) => {
   }
 });
 
-//TODO: Implement delete User
-router.delete("/users", async (req, res) => {});
+// Delete User
+//TODO: Delete all buddyPairs and buddyRequests including userId
+router.delete("/users", auth, async (req: AuthRequest, res) => {
+  try {
+    console.log(req.user);
+
+    const user = await User.findByIdAndDelete(req.user!._id);
+
+    //TODO: abstract getting a public-friendly view of user to middleware
+    if (user !== null) {
+      const resultUser = {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      };
+
+      return res.status(200).send({ user: resultUser });
+    }
+    return res.status(404).json("User does not exist.");
+  } catch (error) {
+    return res.status(400).send();
+  }
+});
 
 // Get User
 router.get("/users/:userId", auth, async (req, res) => {
@@ -149,8 +170,28 @@ router.get("/users/:userId/profile", auth, async (req, res) => {
   }
 });
 
-//TODO: Implement Update User's Profile
-router.patch("/users/:userId/profile", auth, async (req, res) => {});
+// Update User's Profile
+router.patch("/users/:userId/profile", auth, async (req, res) => {
+  const updates = Object.keys(req.body);
+  try {
+    const user = await User.findById(req.params.userId);
+
+    if (user != undefined) {
+      updates.forEach((update: string) => {
+        const profileInfo = user.profileInfo;
+        if (update in profileInfo) {
+          profileInfo[update] = req.body[update];
+        }
+      });
+      await user.save();
+
+      return res.status(200).send();
+    }
+    return res.status(404).send("User not found.");
+  } catch (error) {
+    res.status(500).send("Something went wrong.");
+  }
+});
 
 // Get User's Settings
 router.get("/users/:userId/settings", auth, async (req, res) => {
@@ -169,17 +210,50 @@ router.get("/users/:userId/settings", auth, async (req, res) => {
     }
 
     return res.status(404).send("User does not exist.");
-    
   } catch (error) {
     console.log(error);
     res.status(500).send();
   }
 });
 
-//TODO: Implement Update User's Settings
-router.patch("/users/:userId/settings", auth, async (req, res) => {});
+
+
+//TODO: Settings and Profile routes are almost identical, maybe abstract to middleware
+// Update User's Settings
+router.patch("/users/:userId/settings", auth, async (req, res) => {
+  const updates = Object.keys(req.body);
+  try {
+    const user = await User.findById(req.params.userId);
+
+    if (user != undefined) {
+      updates.forEach((update: string) => {
+        const settingsInfo = user.settingsInfo;
+        if (update in settingsInfo) {
+          settingsInfo[update] = req.body[update];
+        }
+      });
+      await user.save();
+
+      return res.status(200).send();
+    }
+    return res.status(404).send("User not found.");
+  } catch (error) {
+    res.status(500).send("Something went wrong.");
+  }
+});
 
 //TODO: Implement Reset password
-router.patch("/users/:userId/forgot-password", auth, async (req, res) => {});
+router.patch("/users/:userId/forgot-password", auth, async (req, res) => {
+  const updates = Object.keys(req.body);
+  try {
+    const user = await User.findById(req.params.userId);
+
+    if (user != undefined) {
+      updates.forEach((update: string) => {});
+    }
+  } catch (error) {
+    res.status(500).send("Something went wrong.");
+  }
+});
 
 export default router;

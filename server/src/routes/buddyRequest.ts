@@ -1,7 +1,7 @@
 import express from "express";
 import BuddyRequest from "../models/BuddyRequest";
 import User from "../models/User";
-import auth from '../middleware/auth'
+import auth from "../middleware/auth";
 
 const router = express.Router();
 
@@ -15,7 +15,9 @@ router.post("/users/:userId/requests", auth, async (req, res) => {
   const requesterId = requester?._id;
 
   if (requesterId?.equals(userId)) {
-    return res.status(403).send("User cannot send a buddy request to themselves.");
+    return res
+      .status(403)
+      .send("User cannot send a buddy request to themselves.");
   }
 
   if (!requesterId) {
@@ -33,63 +35,81 @@ router.post("/users/:userId/requests", auth, async (req, res) => {
   });
 
   if (existingRequestPair || revRequestPair) {
-    return res.status(409).send("User already has a request from this requester.");
+    return res
+      .status(409)
+      .send("User already has a request from this requester.");
   }
 
   const requesterPair = await BuddyRequest.create({
     userId,
-    requesterId
+    requesterId,
   });
 
-  res.status(201).json(requesterPair);
+  return res.status(201).json(requesterPair);
 });
 
 router.get("/users/:userId/requests", auth, async (req, res) => {
-  const requesters = await BuddyRequest.find().where("userId").equals(req.params.userId);
+  const requesters = await BuddyRequest.find()
+    .where("userId")
+    .equals(req.params.userId);
 
   const resultRequesters = requesters.map(({ requesterId }) => {
     return requesterId;
   });
 
-  res.status(200).json(resultRequesters);
+  return res.status(200).json(resultRequesters);
 });
 
 router.get("/users/:userId/requests/:requesterId", auth, async (req, res) => {
   //TODO: abstract this logic of having to find both combinations to middleware
   const { userId, requesterId } = req.params;
   const buddyPair = await BuddyRequest.findOne({ userId, requesterId });
-  const revBuddyPair = await BuddyRequest.findOne({ userId: requesterId, requesterId: userId });
+  const revBuddyPair = await BuddyRequest.findOne({
+    userId: requesterId,
+    requesterId: userId,
+  });
 
-  if (!buddyPair && !revBuddyPair){
-    return res.status(404).send("The user does not have a request from this requester.");
+  if (!buddyPair && !revBuddyPair) {
+    return res
+      .status(404)
+      .send("The user does not have a request from this requester.");
   }
   const requester = await User.findOne({ _id: req.params.requesterId });
 
-  if ( requester !== null) {
-    res.status(200).json({ requesterId: requester._id });
+  if (requester !== null) {
+    return res.status(200).json({ requesterId: requester._id });
   }
-  res.status(404).send("Requester does not exist.")
+  return res.status(404).send("Requester does not exist.");
 });
 
-router.delete("/users/:userId/requests/:requesterId", auth, async (req, res) => {
-  try {
-    const { userId, requesterId } = req.params;
+router.delete(
+  "/users/:userId/requests/:requesterId",
+  auth,
+  async (req, res) => {
+    try {
+      const { userId, requesterId } = req.params;
 
-    const userExists = await BuddyRequest.findOneAndDelete({ userId, requesterId });
-    const revUserExists = await BuddyRequest.findOneAndDelete({
-      userId: requesterId,
-      requesterId: userId,
-    });
+      const userExists = await BuddyRequest.findOneAndDelete({
+        userId,
+        requesterId,
+      });
+      const revUserExists = await BuddyRequest.findOneAndDelete({
+        userId: requesterId,
+        requesterId: userId,
+      });
 
-    if (!userExists && !revUserExists) {
-      return res.status(404).send("The user does not have a request from this requester.");
+      if (!userExists && !revUserExists) {
+        return res
+          .status(404)
+          .send("The user does not have a request from this requester.");
+      }
+
+      return res.status(200).send(userExists || revUserExists);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send("Something went wrong.");
     }
-
-    res.status(200).send(userExists || revUserExists);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send("Something went wrong ");
   }
-});
+);
 
 export default router;

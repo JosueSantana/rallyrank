@@ -1,8 +1,9 @@
 import express from "express";
-import Match from "../models/Match.js";
-import Match from "../models/BuddyPair.js";
+import Match from "../models/Match";
+import BuddyPair from "../models/BuddyPair";
+import auth from "../middleware/auth";
 
-const router = new express.Router();
+const router = express.Router();
 
 //TODO: Implement route
 router.post("/matches/:buddyPairId", auth, async (req, res) => {

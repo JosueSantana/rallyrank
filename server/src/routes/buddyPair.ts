@@ -44,7 +44,7 @@ router.post("/users/:userId/buddies", auth, async (req, res) => {
     matchesPlayed: 0,
   });
 
-  res.status(201).json(buddyPair);
+  return res.status(201).json(buddyPair);
 });
 
 router.get("/users/:userId/buddies", auth, async (req, res) => {
@@ -56,7 +56,7 @@ router.get("/users/:userId/buddies", auth, async (req, res) => {
     return buddyId;
   });
 
-  res.status(200).json(resultbuddies);
+  return res.status(200).json(resultbuddies);
 });
 
 router.get("/users/:userId/buddies/:buddyId", auth, async (req, res) => {
@@ -76,7 +76,7 @@ router.get("/users/:userId/buddies/:buddyId", auth, async (req, res) => {
   if (buddy !== undefined && buddy !== null) {
     const buddyProfile = buddy.profileInfo;
 
-    res.status(200).json(buddyProfile);
+    return res.status(200).json(buddyProfile);
   }
 });
 
@@ -94,10 +94,10 @@ router.delete("/users/:userId/buddies/:buddyId", auth, async (req, res) => {
       return res.status(404).send("These users are not buddies.");
     }
 
-    res.status(200).send(userExists || revUserExists);
+    return res.status(200).send(userExists || revUserExists);
   } catch (error) {
     console.log(error);
-    res.status(500).send("Something went wrong ");
+    return res.status(500).send("Something went wrong ");
   }
 });
 

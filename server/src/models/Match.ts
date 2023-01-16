@@ -1,7 +1,19 @@
-import mongoose from "mongoose";
+import { Schema, model, Types } from 'mongoose';
+// ----- INTERFACES -----
+export interface IMatch {
+  player1Id: Types.ObjectId;
+  player2Id: Types.ObjectId;
+  court: string;
+  status: string;
+  score: string;
+  winner: Types.ObjectId;
+  timeScheduled: Date;
+  timeFinished: Date;
+}
 
 // TODO: Add validation for court, status, score, timeScheduled, timeFinished
-const matchSchema = new mongoose.Schema({
+// ----- SCHEMAS -----
+const matchSchema = new Schema<IMatch>({
   player1Id: { type: Schema.Types.ObjectId },
   player2Id: { type: Schema.Types.ObjectId },
   court: String,
@@ -12,6 +24,7 @@ const matchSchema = new mongoose.Schema({
   timeFinished: Date,
 });
 
-const Match = mongoose.model("User", matchSchema);
+// ----- MODEL -----
+const Match = model("User", matchSchema);
 
 export default Match;
