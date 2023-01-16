@@ -33,6 +33,6 @@ const courtSchema = new Schema<ICourt>({
 });
 
 // ----- MODEL -----
-const Court = model("User", courtSchema);
+const Court = model("Court", courtSchema);
 
 export default Court;

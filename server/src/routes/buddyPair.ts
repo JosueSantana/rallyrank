@@ -1,10 +1,9 @@
-import * as express from "express";
-import { Router } from "express";
+import express from "express";
 import BuddyPair from "../models/BuddyPair";
 import User from "../models/User";
 import auth from "../middleware/auth";
 
-const router: express.Router = express.Router();
+const router = express.Router();
 
 // TODO: Perform more consistent error handling across routes
 // TODO: Make it so buddies can ONLY be added if a buddy request exists

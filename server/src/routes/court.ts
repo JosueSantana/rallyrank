@@ -3,28 +3,42 @@ import Court from "../models/Court";
 
 const router = express.Router();
 
-//TODO: Implement route
-router.get("/courts", (req, res) => {
+//Get All Courts
+router.get("/courts", async (req, res) => {
   try {
-    // const courts =  Court.find();
+    const courts = await Court.find();
 
+    return res.status(200).send(courts);
   } catch (error) {
-    return res.status(500).send();
-  }
-  res.end();
-});
+    console.log(error);
 
-//TODO: Implement route
-router.get("/courts/:courtId", (req, res) => {
-  try {
-  } catch (error) {
     return res.status(500).send();
   }
 });
 
-//TODO: Implement route
-router.delete("/courts/:courtId", (req, res) => {
+//Get a Court by Id
+router.get("/courts/:courtId", async (req, res) => {
   try {
+    const court = await Court.findById(req.params.courtId);
+    
+    if (court !== undefined) {
+      return res.status(200).json(court);
+    }
+    return res.status(404).send("Court does not exist.");
+  } catch (error) {
+    return res.status(500).send();
+  }
+});
+
+//TODO: Implement route
+router.delete("/courts/:courtId", async (req, res) => {
+  try {
+    const court = await Court.findByIdAndDelete(req.params.courtId);
+
+    if (!court) {
+      return res.status(200).json(court);
+    }
+    return res.status(404).send("Court does not exist.");
   } catch (error) {
     return res.status(500).send();
   }

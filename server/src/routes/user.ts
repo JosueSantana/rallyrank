@@ -106,8 +106,6 @@ router.post("/users/logout", auth, async (req: AuthRequest, res) => {
 //TODO: Delete all buddyPairs and buddyRequests including userId
 router.delete("/users", auth, async (req: AuthRequest, res) => {
   try {
-    console.log(req.user);
-
     const user = await User.findByIdAndDelete(req.user!._id);
 
     //TODO: abstract getting a public-friendly view of user to middleware

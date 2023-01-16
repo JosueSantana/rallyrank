@@ -25,6 +25,6 @@ const matchSchema = new Schema<IMatch>({
 });
 
 // ----- MODEL -----
-const Match = model("User", matchSchema);
+const Match = model("Match", matchSchema);
 
 export default Match;

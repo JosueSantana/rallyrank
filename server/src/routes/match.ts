@@ -1,44 +1,91 @@
 import express from "express";
 import Match from "../models/Match";
-import BuddyPair from "../models/BuddyPair";
-import auth from "../middleware/auth";
+import auth, { AuthRequest } from "../middleware/auth";
+import User from "../models/User";
 
 const router = express.Router();
 
-//TODO: Implement route
-router.post("/matches/:buddyPairId", auth, async (req, res) => {
-  const buddyPair = await Match.find({ buddyPairId: req.params.buddyPairId });
-  
-  const matches = await Match.find();
+// Add a Match
+router.post("/matches/:buddyId", auth, async (req: AuthRequest, res) => {
+  try {
+    const user = await User.findById(req.user!._id);
+    const buddy = await User.findById(req.params.buddyId);
 
-  res.status(200).send();
+    if (user && buddy) {
+      const match = await Match.create({
+        player1Id: user._id,
+        player2Id: buddy._id,
+        ...req.body,
+      });
+
+      return res.status(200).json(match);
+    } else if (user) {
+      const match = await Match.create({
+        player1Id: user._id,
+        player2Id: null,
+        ...req.body,
+      });
+
+      return res.status(200).json(match);
+    } else if (buddy) {
+      const match = await Match.create({
+        player1Id: null,
+        player2Id: buddy._id,
+        ...req.body,
+      });
+
+      return res.status(200).json(match);
+    }
+
+    return res.status(404).send();
+  } catch (error) {
+    return res.status(404).send();
+  }
 });
 
-//TODO: Implement route
+// Get all Matches
 router.get("/matches", auth, async (req, res) => {
-  const matches = await Match.find();
+  try {
+    const matches = await Match.find();
 
-  res.status(200).send();
+    return res.status(200).send(matches);
+  } catch (error) {
+    return res.status(500).send();
+  }
 });
 
-//TODO: Implement route
-router.get("/matches/:userId", auth, (req, res) => {
-  res.end();
-});
+// Get User's Matches with Buddy
+router.get("/matches/:buddyId", auth, async (req: AuthRequest, res) => {
+  try {
+    const user = await User.findById(req.user!._id);
+    const buddy = await User.findById(req.params.buddyId);
 
-//TODO: Implement route
-router.get("/matches/:buddyPairId", auth, (req, res) => {
-  res.end();
-});
+    if (user && buddy) {
+      const matches = await Match.find({
+        player1Id: user._id,
+        player2Id: buddy._id,
+      });
 
-//TODO: Implement route
-router.get("/matches/:buddyPairId/count", auth, (req, res) => {
-  res.end();
-});
+      return res.status(200).json(matches);
+    } else if (user) {
+      const matches = await Match.find({
+        player1Id: user._id,
+        player2Id: null,
+      });
 
-//TODO: Implement route
-router.delete("/matches/:buddyPairId", auth, (req, res) => {
-  res.end();
+      return res.status(200).json(matches);
+    } else if (buddy) {
+      const matches = await Match.find({
+        player1Id: null,
+        player2Id: buddy._id,
+      });
+
+      return res.status(200).json(matches);
+    }
+    return res.status(404).send();
+  } catch (error) {
+    return res.status(404).send();
+  }
 });
 
 export default router;
