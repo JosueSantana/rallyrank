@@ -7,3 +7,4 @@ This application was developed by Josue A. Santana. This concept was built with 
 ## Tooling
 - React
 - Node.js
+- Typescript

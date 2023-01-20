@@ -1,0 +1,23 @@
+.splash-header {
+
+}
+
+.splash-header-background {
+  background: #292B30;
+}
+
+.splash-header-text {
+  color: #fffeec;
+}
+
+.splash-header-text:hover {
+  color: #ccff00;
+}
+
+.splash-footer-background {
+  background: #292B30;
+}
+
+.splash-footer-text {
+  background: #383746;
+}

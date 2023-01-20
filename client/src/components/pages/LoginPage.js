@@ -3,13 +3,34 @@ import Form from "react-bootstrap/Form";
 import Container from "react-bootstrap/Container";
 import Card from "react-bootstrap/Card";
 
+import { useDispatch } from "react-redux";
+import { loginUser } from "../../slices/authSlice";
+
 function LoginPage() {
+  const dispatch = useDispatch();
+
+  async function handleLoginSubmission(event) {
+    event.preventDefault();
+
+    const email = event.target[0].value;
+    const password = event.target[1].value;
+
+    let response = await dispatch(
+      loginUser({
+        email,
+        password,
+      })
+    );
+
+    console.log(response);
+  }
+
   return (
     <Container className="d-flex align-items-center justify-content-center main-content">
       <Card className="w-50 px-3 py-3 login-limits">
         <Card.Body>
           <Card.Title className="fs-2 mb-5">Log In</Card.Title>
-          <Form>
+          <Form onSubmit={handleLoginSubmission}>
             <Form.Group className="mb-3" controlId="formBasicEmail">
               <Form.Label className="fs-5">Email Address</Form.Label>
               <Form.Control type="email" placeholder="Enter email" />
@@ -25,7 +46,11 @@ function LoginPage() {
               </Card.Link>
             </Form.Group>
             <Form.Group className="d-flex justify-content-center">
-              <Button variant="primary" type="submit" size="lg" >
+              <Button
+                variant="primary"
+                type="submit"
+                size="lg"                
+              >
                 Continue
               </Button>
             </Form.Group>

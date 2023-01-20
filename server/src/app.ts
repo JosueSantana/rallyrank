@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import mongooseConnection from './db/mongoose';
 import userRouter from './routes/user';
 import buddyPairRouter from './routes/buddyPair';
@@ -9,8 +10,15 @@ import matchRouter from './routes/match';
 const app = express();
 mongooseConnection();
 
+const corsOptions ={
+  origin: '*',
+  credentials:true,
+  optionSuccessStatus:200
+}
+
 // Bind middleware
 app.use(express.json());
+app.use(cors(corsOptions));
 app.use(userRouter);
 app.use(buddyPairRouter);
 app.use(buddyRequestRouter);

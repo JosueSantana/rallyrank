@@ -1,5 +1,6 @@
 import HomePage from "./components/pages/HomePage";
 import LoginPage from "./components/pages/LoginPage";
+import RegisterPage from "./components/pages/RegisterPage";
 import ProfilePage from "./components/pages/ProfilePage";
 import SettingsPage from "./components/pages/SettingsPage";
 import MatchMePage from "./components/pages/MatchMePage";
@@ -18,6 +19,9 @@ function App() {
         </Route>
         <Route path="/login">
           <LoginPage />
+        </Route>
+        <Route path="/register">
+          <RegisterPage />
         </Route>
         <Route path="/profile">
           <ProfilePage />

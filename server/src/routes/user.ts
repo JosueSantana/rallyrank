@@ -142,6 +142,7 @@ router.get("/users/:userId", auth, async (req, res) => {
     }
     return res.status(404).send("User not found.");
   } catch (error) {
+    console.log(error);    
     return res.status(500).send();
   }
 });
